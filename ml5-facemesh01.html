@@ -1,0 +1,126 @@
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Facemesh dog</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/addons/p5.dom.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.16/addons/p5.sound.js"></script>
+    <script src="https://unpkg.com/ml5@latest/dist/ml5.min.js"></script>
+    <script src="https://unpkg.com/ml5@0.4.3/dist/ml5.min.js"></script>
+
+    <style></style>
+  </head>
+  <body>
+    <h2>❤わんわんわん！</h2>
+    <h3>🐶♡子犬系男子、女子になろう♡🐶</h3>
+
+    <script>
+      let facemesh;
+      let video;
+      let predictions = [];
+      let img_omimi, img_ohana;
+      var d;
+      let playing = false;
+
+      function preload() {
+        img_omimi = loadImage("omimi.png");
+        img_ohana = loadImage("ohana.png");
+        soundFormats("ogg", "mp3");
+        song = loadSound("wanko_w01.mp3");
+      }
+
+      function setup() {
+        createCanvas(640, 480);
+        video = createCapture(VIDEO);
+        video.size(width, height);
+
+        facemesh = ml5.facemesh(video, modelReady);
+
+        facemesh.on("predict", (results) => {
+          predictions = results;
+        });
+        video.hide();
+      }
+
+      function modelReady() {}
+
+      function draw() {
+        image(video, 0, 0, width, height);
+        drawKeypoints();
+
+        fill(255);
+        textSize(32);
+        text(
+          "Peace begins with a smilePeace begins with a smile.",
+          mouseX,
+          mouseY,
+          210,
+          210
+        );
+        if (mouseIsPressed) {
+          noFill();
+          stroke(255, 215, 0);
+          rect(mouseX, mouseY, 200, 200);
+        }
+      }
+
+      function drawKeypoints() {
+        for (let i = 0; i < predictions.length; i += 1) {
+          const keypoints = predictions[i].scaledMesh;
+
+          const [Ox, Oy] = keypoints[20];
+          const [Ax, Ay] = keypoints[150];
+          d = Math.sqrt(Math.pow(Ax - Ox, 2) + Math.pow(Ay - Oy, 2));
+
+          image(img_omimi, Ox - 110, Oy - 1.9 * d, d * 3, d * 3);
+
+          const [Hx, Hy] = keypoints[164];
+          image(img_ohana, Hx - 1.2 * d, Hy - 190, d * 2.5, d * 2.5);
+
+          const [MUx, MUy] = keypoints[13];
+          const [MDx, MDy] = keypoints[14];
+          let dis = Math.sqrt(Math.pow(MUx - MDx, 2) + Math.pow(MUy - MDy, 2));
+          if (dis >= 10 && playing == false) {
+            song.play();
+            playing = true;
+          } else if (dis <= 9) {
+            song.stop();
+            playing = false;
+          }
+        }
+      }
+    </script>
+
+    <style>
+      body {
+        text-align: center;
+        background-color: #cc6666;
+        border-image-outset: url(images/miffy.jpg);
+      }
+
+      h2 {
+        position: relative;
+        padding: 1rem 2rem;
+        border: 4px solid #cccc99;
+        color: #cccc99;
+        font-size: 30px;
+        text-align: center;
+      }
+      h2:before {
+        position: absolute;
+        top: 4px;
+        left: 4px;
+        width: calc(100% - 8px);
+        height: calc(100% - 8px);
+        content: "";
+        border: 2px solid #cccc99;
+      }
+      h3 {
+        color: #880000;
+        font-size: 30px;
+        border-style: dotted;
+        text-align: center;
+      }
+    </style>
+  </body>
+</html>
